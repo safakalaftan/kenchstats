@@ -130,9 +130,9 @@ app.get('/', (req, res) => {
 <body>
   <canvas id="particles-canvas"></canvas>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCH<span>STATS</span></a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
     <div class="nav-links">
-      <a href="#">Profil Ara</a><a href="#">Şampiyonlar</a><a href="#">Sıralama</a><a href="#">Canlı Oyun</a>
+      <a href="/search">Profil Ara</a><a href="/champions">Şampiyonlar</a><a href="/leaderboard">Sıralama</a>
     </div>
   </nav>
   <div class="hero">
@@ -491,7 +491,7 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench"><span>KENCH</span>STATS</a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
     <a class="back" href="/">← Ana Sayfa</a>
     <div class="nav-right">
       <a class="canli-btn" href="/canli/${bolge}/${encodeURIComponent(hesap.data.gameName)}/${hesap.data.tagLine}"><div class="live-dot"></div> Canlı Oyun</a>
@@ -708,7 +708,7 @@ app.get('/canli/:bolge/:isim/:tag', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench"><span>KENCH</span>STATS</a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
     <a class="back" href="/">← Ana Sayfa</a>
     <div class="nav-right">
       <a class="profil-link" href="/oyuncu/${bolge}/${encodeURIComponent(oyuncuAdi)}/${oyuncuTag}">Profil</a>
@@ -1009,7 +1009,7 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench"><span>KENCH</span>STATS</a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
     <a class="back" href="javascript:history.back()">← Geri</a>
     <div class="nav-right">
       <a class="profil-link" href="${profilUrl}">Profil</a>
@@ -1054,6 +1054,551 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
       </style></head><body><div class="err"><h2>Hata Oluştu</h2><p>${detay}</p></div></body></html>
     `);
   }
+});
+
+// ── /search ───────────────────────────────────────────────────────────────────
+app.get('/search', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Ara — KenchStats</title>
+  <style>
+    ${NAV_CSS}
+    body { background: #070C14; }
+    .logo span { color: #C89B3C; }
+    .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
+    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 20px 60px; }
+    .page-title { font-size: 42px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; text-align: center; }
+    .page-sub { font-size: 14px; color: #3a4a5c; margin-bottom: 36px; text-align: center; }
+    .search-container { width: 100%; max-width: 640px; margin-bottom: 24px; }
+    .search-wrap { display: flex; border-radius: 14px; overflow: hidden; border: 1px solid #182030; background: #0b1522; transition: border-color .3s, box-shadow .3s; }
+    .search-wrap.glow { border-color: rgba(200,155,60,0.48); box-shadow: 0 0 0 3px rgba(200,155,60,0.07), 0 0 28px rgba(200,155,60,0.1); }
+    .region-sel { background: #080f1a; border: none; border-right: 1px solid #182030; color: #C89B3C; font-size: 12px; font-weight: 700; padding: 0 20px; height: 64px; outline: none; cursor: pointer; font-family: inherit; letter-spacing: 1px; min-width: 82px; }
+    .region-sel option { background: #0b1522; color: #c8d0e0; }
+    .search-input { flex: 1; background: transparent; border: none; color: #dde4ef; font-size: 16px; padding: 0 20px; height: 64px; outline: none; font-family: inherit; }
+    .search-input::placeholder { color: #1c2a3a; }
+    .search-btn { background: linear-gradient(135deg, #C89B3C 0%, #9a7228 100%); border: none; color: #070C14; font-size: 11px; font-weight: 800; padding: 0 34px; height: 64px; cursor: pointer; font-family: 'Cinzel', serif; letter-spacing: 2px; transition: opacity .15s, transform .1s; flex-shrink: 0; }
+    .search-btn:hover { opacity: .85; }
+    .search-btn:active { transform: scale(.97); }
+    .recent-section { width: 100%; max-width: 640px; min-height: 38px; }
+    .recent-label { font-size: 10px; letter-spacing: 2.5px; color: #243040; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+    .recent-list { display: flex; gap: 8px; flex-wrap: wrap; }
+    .recent-chip { display: flex; align-items: center; gap: 8px; background: #0b1522; border: 1px solid #182030; border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: border-color .15s, background .15s; text-decoration: none; }
+    .recent-chip:hover { border-color: rgba(200,155,60,0.32); background: #0f1d2e; }
+    .recent-chip-region { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #C89B3C; background: rgba(200,155,60,0.09); padding: 2px 7px; border-radius: 4px; }
+    .recent-chip-name { font-size: 12px; font-weight: 600; color: #7a8899; }
+    .recent-chip-tag { color: #2a3a4a; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <div class="nav-links">
+      <a href="/search" style="color:#C89B3C">Profil Ara</a>
+      <a href="/champions">Şampiyonlar</a>
+      <a href="/leaderboard">Sıralama</a>
+    </div>
+    <div class="nav-right">
+      <a href="/" style="font-size:13px;color:#4a5568;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#c8d0e0'" onmouseout="this.style.color='#4a5568'">← Ana Sayfa</a>
+    </div>
+  </nav>
+  <div class="page-wrap">
+    <div class="page-title">Profil Ara</div>
+    <p class="page-sub">Oyuncu adı ve etiketini girerek profil sayfasına ulaş.</p>
+    <div class="search-container">
+      <div class="search-wrap" id="searchWrap">
+        <select class="region-sel" id="bolge">
+          <option value="tr">TR</option>
+          <option value="euw">EUW</option>
+          <option value="na">NA</option>
+          <option value="kr">KR</option>
+          <option value="eune">EUNE</option>
+        </select>
+        <input class="search-input" id="arama" placeholder="Oyuncu adı #TR1" autocomplete="off" />
+        <button class="search-btn" onclick="ara()">ARA</button>
+      </div>
+    </div>
+    <div class="recent-section" id="recentSection"></div>
+  </div>
+  <script>
+    const searchWrap = document.getElementById('searchWrap');
+    document.getElementById('arama').addEventListener('input', function () {
+      searchWrap.classList.toggle('glow', this.value.length > 0);
+    });
+    const RECENT_KEY = 'kenchstats_recent_v1';
+    function getRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; } }
+    function saveRecent(bolge, isim, tag) {
+      const list = getRecent().filter(r => !(r.b === bolge && r.i.toLowerCase() === isim.toLowerCase() && r.t.toLowerCase() === tag.toLowerCase()));
+      list.unshift({ b: bolge, i: isim, t: tag });
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 5)));
+    }
+    function renderRecent() {
+      const list = getRecent();
+      const sec = document.getElementById('recentSection');
+      if (!list.length) { sec.innerHTML = ''; return; }
+      sec.innerHTML = '<div class="recent-label">Son Aramalar</div><div class="recent-list">' +
+        list.map(r =>
+          '<a class="recent-chip" href="/oyuncu/' + r.b + '/' + encodeURIComponent(r.i) + '/' + r.t + '">' +
+          '<span class="recent-chip-region">' + r.b.toUpperCase() + '</span>' +
+          '<span class="recent-chip-name">' + r.i + '<span class="recent-chip-tag">#' + r.t + '</span></span>' +
+          '</a>'
+        ).join('') + '</div>';
+    }
+    renderRecent();
+    function ara() {
+      const girdi = document.getElementById('arama').value.trim();
+      const bolge = document.getElementById('bolge').value;
+      if (!girdi.includes('#')) { alert('Lütfen #TAG formatında gir. Örnek: Duloxetine#RO34'); return; }
+      const [isim, ...tagParts] = girdi.split('#');
+      const tag = tagParts.join('#');
+      saveRecent(bolge, isim, tag);
+      window.location.href = '/oyuncu/' + bolge + '/' + encodeURIComponent(isim) + '/' + tag;
+    }
+    document.getElementById('arama').addEventListener('keypress', function (e) { if (e.key === 'Enter') ara(); });
+  </script>
+</body>
+</html>`);
+});
+
+// ── /champions ────────────────────────────────────────────────────────────────
+app.get('/champions', async (req, res) => {
+  try {
+    const r = await axios.get(`${DDRAGON}/data/tr_TR/champion.json`);
+    const champions = Object.values(r.data.data).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+    res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Şampiyonlar — KenchStats</title>
+  <style>
+    ${NAV_CSS}
+    body { background: #070C14; }
+    .logo span { color: #C89B3C; }
+    .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 80px 24px 60px; }
+    .page-title { font-size: 32px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: #3a4a5c; margin-bottom: 20px; }
+    .toolbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .filter-input { flex: 1; max-width: 340px; background: #0b1522; border: 1px solid #182030; border-radius: 10px; color: #dde4ef; font-size: 14px; padding: 10px 16px; outline: none; font-family: inherit; transition: border-color .2s; }
+    .filter-input:focus { border-color: rgba(200,155,60,0.4); }
+    .filter-input::placeholder { color: #2a3a4a; }
+    .champ-count { font-size: 12px; color: #3a4a5c; }
+    .champ-count span { color: #C89B3C; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+    .champ-card { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 14px 8px 10px; text-align: center; text-decoration: none; transition: border-color .15s, transform .15s, background .15s; display: block; }
+    .champ-card:hover { border-color: rgba(200,155,60,0.4); background: #141e2e; transform: translateY(-3px); }
+    .champ-card img { width: 64px; height: 64px; border-radius: 10px; border: 2px solid #182030; object-fit: cover; margin-bottom: 8px; transition: border-color .15s; display: block; margin-left: auto; margin-right: auto; }
+    .champ-card:hover img { border-color: rgba(200,155,60,0.4); }
+    .champ-name { font-size: 11px; font-weight: 700; color: #8b97ad; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .no-results { text-align: center; padding: 60px 20px; color: #3a4a5c; font-size: 15px; display: none; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <div class="nav-links">
+      <a href="/search">Profil Ara</a>
+      <a href="/champions" style="color:#C89B3C">Şampiyonlar</a>
+      <a href="/leaderboard">Sıralama</a>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="page-title">Şampiyonlar</div>
+    <div class="page-sub">Tüm League of Legends şampiyonları</div>
+    <div class="toolbar">
+      <input class="filter-input" id="filterInput" placeholder="Şampiyon ara..." autocomplete="off" oninput="filterChamps(this.value)" />
+      <div class="champ-count">Toplam <span id="count">${champions.length}</span> şampiyon</div>
+    </div>
+    <div class="grid" id="grid">
+      ${champions.map(c => `<a class="champ-card" href="/champions/${encodeURIComponent(c.id)}" data-name="${c.name.toLowerCase()} ${c.id.toLowerCase()}">
+        <img src="${DDRAGON}/img/champion/${c.id}.png" alt="${c.name}" loading="lazy" onerror="this.style.opacity='.3'"/>
+        <div class="champ-name">${c.name}</div>
+      </a>`).join('')}
+    </div>
+    <div class="no-results" id="noResults">Şampiyon bulunamadı.</div>
+  </div>
+  <script>
+    function filterChamps(q) {
+      const cards = document.querySelectorAll('.champ-card');
+      const query = q.toLowerCase().trim();
+      let visible = 0;
+      cards.forEach(card => {
+        const show = !query || card.dataset.name.includes(query);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('count').textContent = visible;
+      document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>`);
+  } catch (e) {
+    res.status(500).send(`<!DOCTYPE html><html><body style="background:#070C14;color:#ff4655;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif">Şampiyonlar yüklenirken hata oluştu.</body></html>`);
+  }
+});
+
+// ── /champions/:championName ───────────────────────────────────────────────────
+app.get('/champions/:championName', async (req, res) => {
+  const { championName } = req.params;
+  const region = (req.query.region || 'euw').toLowerCase();
+  const { sunucu, routing } = BOLGE_MAP[region] || BOLGE_MAP.euw;
+  const API_KEY = process.env.RIOT_API_KEY;
+  const SPELL_KEYS = ['Q', 'W', 'E', 'R'];
+
+  try {
+    const champResp = await axios.get(`${DDRAGON}/data/tr_TR/champion/${championName}.json`);
+    const champ = champResp.data.data[championName];
+    if (!champ) {
+      return res.status(404).send(`<!DOCTYPE html><html><body style="background:#070C14;color:#ff4655;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif">Şampiyon bulunamadı: ${championName}</body></html>`);
+    }
+
+    let recentMatches = [];
+    try {
+      const chalResp = await axios.get(
+        `https://${sunucu}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5`,
+        { headers: { 'X-Riot-Token': API_KEY } }
+      );
+      const top5 = chalResp.data.entries.sort((a, b) => b.leaguePoints - a.leaguePoints).slice(0, 5);
+      const puuids = (await Promise.all(
+        top5.map(async p => {
+          try {
+            const r = await axios.get(`https://${sunucu}.api.riotgames.com/lol/summoner/v4/summoners/${p.summonerId}`, { headers: { 'X-Riot-Token': API_KEY } });
+            return r.data.puuid;
+          } catch { return null; }
+        })
+      )).filter(Boolean);
+
+      const allMatchIds = [...new Set((await Promise.all(
+        puuids.map(async puuid => {
+          try {
+            const r = await axios.get(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=5`, { headers: { 'X-Riot-Token': API_KEY } });
+            return r.data;
+          } catch { return []; }
+        })
+      )).flat())].slice(0, 20);
+
+      const details = (await Promise.all(
+        allMatchIds.map(async id => {
+          try {
+            const r = await axios.get(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, { headers: { 'X-Riot-Token': API_KEY } });
+            return r.data;
+          } catch { return null; }
+        })
+      )).filter(Boolean);
+
+      recentMatches = details
+        .filter(m => m.info.participants.some(p => p.championName === championName))
+        .slice(0, 5)
+        .map(m => {
+          const player = m.info.participants.find(p => p.championName === championName);
+          const items = [player.item0, player.item1, player.item2, player.item3, player.item4, player.item5, player.item6].filter(id => id && id !== 0);
+          const kda = player.deaths === 0 ? 'Perfect' : ((player.kills + player.assists) / player.deaths).toFixed(2);
+          return {
+            playerName: player.riotIdGameName || player.summonerName || '—',
+            win: player.win, kills: player.kills, deaths: player.deaths, assists: player.assists,
+            kda, items,
+            cs: player.totalMinionsKilled + player.neutralMinionsKilled,
+            duration: Math.floor(m.info.gameDuration / 60) + ':' + String(m.info.gameDuration % 60).padStart(2, '0')
+          };
+        });
+    } catch (e) { recentMatches = []; }
+
+    const splashUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championName}_0.jpg`;
+    const stripTags = s => s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+    res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${champ.name} — KenchStats</title>
+  <style>
+    ${NAV_CSS}
+    body { background: #070C14; }
+    .logo span { color: #C89B3C; }
+    .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
+    .splash-wrap { position: relative; height: 440px; overflow: hidden; margin-top: 58px; }
+    .splash-img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
+    .splash-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(7,12,20,0.15) 0%, rgba(7,12,20,0.5) 55%, #070C14 100%); }
+    .splash-info { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); text-align: center; width: 100%; padding: 0 24px; }
+    .champ-title-sub { font-size: 12px; letter-spacing: 3px; color: #C89B3C; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+    .champ-title-name { font-size: 56px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 3px; color: #e2e8f0; text-shadow: 0 2px 20px rgba(0,0,0,0.9); }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px 60px; }
+    .section-hdr { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; margin: 32px 0 14px; display: flex; align-items: center; gap: 16px; }
+    .abilities-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .ability-card { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 14px 12px; text-align: center; transition: border-color .15s; }
+    .ability-card:hover { border-color: rgba(200,155,60,0.35); }
+    .ability-key { font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #C89B3C; text-transform: uppercase; margin-bottom: 8px; }
+    .ability-img { width: 52px; height: 52px; border-radius: 10px; border: 2px solid #182030; margin: 0 auto 8px; display: block; }
+    .ability-name { font-size: 11px; font-weight: 700; color: #c8d0e0; margin-bottom: 6px; }
+    .ability-desc { font-size: 10px; color: #3a4a5c; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    .region-btn { font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 5px 12px; border-radius: 6px; border: 1px solid #182030; background: #0e1624; color: #4a5568; text-decoration: none; transition: all .15s; }
+    .region-btn:hover { border-color: rgba(200,155,60,0.35); color: #c8d0e0; }
+    .region-btn.active { background: rgba(200,155,60,0.1); border-color: rgba(200,155,60,0.4); color: #C89B3C; }
+    .region-btns { display: flex; gap: 6px; }
+    .match-card { display: flex; align-items: center; gap: 14px; background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 14px 18px; margin-bottom: 8px; border-left: 3px solid transparent; }
+    .match-card.win { border-left-color: #00c896; background: #0c1a16; }
+    .match-card.loss { border-left-color: #ff4655; background: #180c10; }
+    .match-badge { font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 6px; flex-shrink: 0; min-width: 68px; text-align: center; }
+    .match-card.win .match-badge { background: rgba(0,200,150,0.12); color: #00c896; }
+    .match-card.loss .match-badge { background: rgba(255,70,85,0.12); color: #ff4655; }
+    .match-player { font-size: 13px; font-weight: 700; color: #c8d0e0; min-width: 120px; }
+    .match-kda { font-size: 12px; color: #8b97ad; font-weight: 600; min-width: 90px; }
+    .match-items { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+    .match-item { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #182030; object-fit: cover; }
+    .match-meta { font-size: 11px; color: #4a5568; text-align: right; white-space: nowrap; }
+    .no-matches { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 40px; text-align: center; color: #3a4a5c; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <div class="nav-links">
+      <a href="/search">Profil Ara</a>
+      <a href="/champions" style="color:#C89B3C">Şampiyonlar</a>
+      <a href="/leaderboard">Sıralama</a>
+    </div>
+    <div class="nav-right">
+      <a href="/champions" style="font-size:13px;color:#4a5568;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#c8d0e0'" onmouseout="this.style.color='#4a5568'">← Şampiyonlar</a>
+    </div>
+  </nav>
+  <div class="splash-wrap">
+    <img class="splash-img" src="${splashUrl}" alt="${champ.name}" onerror="this.style.background='#131920'"/>
+    <div class="splash-overlay"></div>
+    <div class="splash-info">
+      <div class="champ-title-sub">${champ.title}</div>
+      <div class="champ-title-name">${champ.name}</div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="section-hdr">Yetenekler</div>
+    <div class="abilities-grid">
+      <div class="ability-card">
+        <div class="ability-key">Pasif</div>
+        <img class="ability-img" src="${DDRAGON}/img/passive/${champ.passive.image.full}" alt="${champ.passive.name}" onerror="this.style.background='#131920'"/>
+        <div class="ability-name">${champ.passive.name}</div>
+        <div class="ability-desc">${stripTags(champ.passive.description)}</div>
+      </div>
+      ${champ.spells.map((s, i) => `<div class="ability-card">
+        <div class="ability-key">${SPELL_KEYS[i]}</div>
+        <img class="ability-img" src="${DDRAGON}/img/spell/${s.image.full}" alt="${s.name}" onerror="this.style.background='#131920'"/>
+        <div class="ability-name">${s.name}</div>
+        <div class="ability-desc">${stripTags(s.description)}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="section-hdr">
+      <span>Son Yüksek Elo Maçlar</span>
+      <div class="region-btns">
+        ${['tr', 'euw', 'na', 'kr', 'eune'].map(r =>
+          `<a class="region-btn ${r === region ? 'active' : ''}" href="/champions/${championName}?region=${r}">${r.toUpperCase()}</a>`
+        ).join('')}
+      </div>
+    </div>
+
+    ${recentMatches.length === 0
+      ? `<div class="no-matches">Bu şampiyon için ${region.toUpperCase()} sunucusunda yüksek elo maçı bulunamadı.</div>`
+      : recentMatches.map(m => `<div class="match-card ${m.win ? 'win' : 'loss'}">
+        <div class="match-badge">${m.win ? 'KAZANDI' : 'KAYBETTİ'}</div>
+        <div class="match-player">${m.playerName}</div>
+        <div class="match-kda">${m.kills}/${m.deaths}/${m.assists} <span style="font-size:10px;color:#4a5568">${m.kda} KDA</span></div>
+        <div class="match-items">
+          ${m.items.map(id => `<img class="match-item" src="${DDRAGON}/img/item/${id}.png" alt="${id}" onerror="this.style.display='none'"/>`).join('')}
+        </div>
+        <div class="match-meta">${m.cs} CS<br/>${m.duration}</div>
+      </div>`).join('')}
+  </div>
+</body>
+</html>`);
+  } catch (e) {
+    const msg = e.response ? `${e.response.status} — ${JSON.stringify(e.response.data)}` : e.message;
+    res.status(500).send(`<!DOCTYPE html><html><body style="background:#070C14;color:#ff4655;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif;gap:12px"><div style="font-size:20px">Hata Oluştu</div><div style="font-size:13px;color:#4a5568">${msg}</div><a href="/champions" style="color:#4FC3F7;font-size:13px">← Şampiyonlar</a></body></html>`);
+  }
+});
+
+// ── /leaderboard ──────────────────────────────────────────────────────────────
+app.get('/leaderboard', async (req, res) => {
+  const region = (req.query.region || 'euw').toLowerCase();
+  const { sunucu, routing } = BOLGE_MAP[region] || BOLGE_MAP.euw;
+  const API_KEY = process.env.RIOT_API_KEY;
+  const searchQuery = (req.query.q || '').trim();
+
+  let top10 = [];
+  let leagueName = '';
+  let userRank = null;
+  let userError = null;
+
+  try {
+    const leagueResp = await axios.get(
+      `https://${sunucu}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5`,
+      { headers: { 'X-Riot-Token': API_KEY } }
+    );
+    leagueName = leagueResp.data.name || (region.toUpperCase() + ' Challenger');
+    top10 = leagueResp.data.entries
+      .sort((a, b) => b.leaguePoints - a.leaguePoints)
+      .slice(0, 10)
+      .map((e, i) => ({ ...e, pos: i + 1 }));
+  } catch (e) { top10 = []; }
+
+  if (searchQuery && searchQuery.includes('#')) {
+    try {
+      const [playerName, ...tagParts] = searchQuery.split('#');
+      const playerTag = tagParts.join('#');
+      const accountResp = await axios.get(
+        `https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(playerName)}/${encodeURIComponent(playerTag)}`,
+        { headers: { 'X-Riot-Token': API_KEY } }
+      );
+      const puuid = accountResp.data.puuid;
+      const rankResp = await axios.get(
+        `https://${sunucu}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,
+        { headers: { 'X-Riot-Token': API_KEY } }
+      );
+      const soloEntry = rankResp.data.find(r => r.queueType === 'RANKED_SOLO_5x5');
+      if (soloEntry) {
+        userRank = {
+          name: accountResp.data.gameName, tag: accountResp.data.tagLine,
+          tier: soloEntry.tier, rank: soloEntry.rank,
+          lp: soloEntry.leaguePoints, wins: soloEntry.wins, losses: soloEntry.losses,
+          wr: Math.round((soloEntry.wins / (soloEntry.wins + soloEntry.losses)) * 100)
+        };
+      } else {
+        userRank = { name: accountResp.data.gameName, tag: accountResp.data.tagLine, unranked: true };
+      }
+    } catch (e) {
+      userError = 'Oyuncu bulunamadı. Doğru bölgeyi ve #TAG formatını kontrol et.';
+    }
+  }
+
+  const wrColor = wr => wr >= 55 ? '#00c896' : wr < 45 ? '#ff4655' : '#f0b429';
+
+  res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sıralama — KenchStats</title>
+  <style>
+    ${NAV_CSS}
+    body { background: #070C14; }
+    .logo span { color: #C89B3C; }
+    .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
+    .container { max-width: 900px; margin: 0 auto; padding: 80px 24px 60px; }
+    .page-title { font-size: 32px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: #3a4a5c; margin-bottom: 24px; }
+    .region-tabs { display: flex; gap: 6px; margin-bottom: 24px; }
+    .region-tab { font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 7px 16px; border-radius: 8px; border: 1px solid #182030; background: #0e1624; color: #4a5568; text-decoration: none; transition: all .15s; }
+    .region-tab:hover { border-color: rgba(200,155,60,0.35); color: #c8d0e0; }
+    .region-tab.active { background: rgba(200,155,60,0.1); border-color: rgba(200,155,60,0.4); color: #C89B3C; }
+    .search-row { display: flex; gap: 10px; margin-bottom: 24px; }
+    .player-input { flex: 1; max-width: 440px; background: #0b1522; border: 1px solid #182030; border-radius: 10px; color: #dde4ef; font-size: 14px; padding: 12px 16px; outline: none; font-family: inherit; transition: border-color .2s; }
+    .player-input:focus { border-color: rgba(200,155,60,0.4); }
+    .player-input::placeholder { color: #2a3a4a; }
+    .search-btn2 { background: linear-gradient(135deg, #C89B3C 0%, #9a7228 100%); border: none; color: #070C14; font-size: 11px; font-weight: 800; padding: 0 24px; border-radius: 10px; cursor: pointer; font-family: 'Cinzel', serif; letter-spacing: 2px; transition: opacity .15s; }
+    .search-btn2:hover { opacity: .85; }
+    .user-card { background: #131920; border: 1px solid rgba(200,155,60,0.22); border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; }
+    .user-name { font-size: 18px; font-weight: 700; color: #e2e8f0; font-family: 'Cinzel', serif; }
+    .user-tag { font-size: 13px; color: #4a5568; margin-top: 2px; }
+    .user-tier { font-size: 22px; font-weight: 800; font-family: 'Cinzel', serif; margin-left: auto; }
+    .user-details { text-align: right; }
+    .user-lp { font-size: 13px; color: #8b97ad; }
+    .user-wr { font-size: 11px; margin-top: 3px; font-weight: 600; }
+    .user-unranked { font-size: 16px; color: #3a4a5c; margin-left: auto; font-weight: 700; }
+    .user-error { background: rgba(255,70,85,0.08); border: 1px solid rgba(255,70,85,0.2); border-radius: 12px; padding: 14px 20px; color: #ff4655; font-size: 13px; margin-bottom: 20px; }
+    .section-hdr { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; margin-bottom: 12px; }
+    .lb-wrap { border: 1px solid #182030; border-radius: 14px; overflow: hidden; }
+    .lb-table { width: 100%; border-collapse: collapse; }
+    .lb-table thead tr { background: #0b1220; }
+    .lb-table th { padding: 10px 16px; font-size: 10px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 1.5px; text-align: left; }
+    .lb-table tbody tr { border-top: 1px solid #182030; background: #0e1624; transition: background .12s; }
+    .lb-table tbody tr:hover { background: #111d2e; }
+    .lb-table td { padding: 13px 16px; font-size: 13px; color: #c8d0e0; }
+    .rank-num { font-size: 14px; font-weight: 800; color: #4a5568; }
+    .rank-gold { color: #C89B3C; }
+    .rank-silver { color: #94a3b8; }
+    .rank-bronze { color: #cd7f32; }
+    .player-cell { font-weight: 700; color: #e2e8f0; }
+    .lp-cell { font-weight: 800; color: #C89B3C; }
+    .wl-cell { color: #4a5568; font-size: 12px; }
+    .wr-cell { font-weight: 700; }
+    .empty-state { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 40px; text-align: center; color: #3a4a5c; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <div class="nav-links">
+      <a href="/search">Profil Ara</a>
+      <a href="/champions">Şampiyonlar</a>
+      <a href="/leaderboard" style="color:#C89B3C">Sıralama</a>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="page-title">Sıralama</div>
+    <div class="page-sub">Sunucu liderlik tablosu ve oyuncu sıralama araması</div>
+
+    <div class="region-tabs">
+      ${['tr', 'euw', 'na', 'kr', 'eune'].map(r =>
+        `<a class="region-tab ${r === region ? 'active' : ''}" href="/leaderboard?region=${r}">${r.toUpperCase()}</a>`
+      ).join('')}
+    </div>
+
+    <form action="/leaderboard" method="get" style="display:contents">
+      <input type="hidden" name="region" value="${region}">
+      <div class="search-row">
+        <input class="player-input" name="q" placeholder="Oyuncu adı #TR1" value="${searchQuery.replace(/"/g, '&quot;')}" autocomplete="off"/>
+        <button type="submit" class="search-btn2">ARA</button>
+      </div>
+    </form>
+
+    ${userError ? `<div class="user-error">${userError}</div>` : ''}
+
+    ${userRank && !userRank.unranked ? `<div class="user-card">
+      <div>
+        <div class="user-name">${userRank.name}</div>
+        <div class="user-tag">#${userRank.tag} · ${region.toUpperCase()}</div>
+      </div>
+      <div class="user-tier" style="color:${RANK_RENK[userRank.tier] || '#c8d0e0'}">${userRank.tier} ${userRank.rank}</div>
+      <div class="user-details">
+        <div class="user-lp">${userRank.lp} LP</div>
+        <div class="user-wr" style="color:${wrColor(userRank.wr)}">${userRank.wr}% WR · ${userRank.wins}W ${userRank.losses}L</div>
+      </div>
+    </div>` : ''}
+
+    ${userRank && userRank.unranked ? `<div class="user-card">
+      <div>
+        <div class="user-name">${userRank.name}</div>
+        <div class="user-tag">#${userRank.tag} · ${region.toUpperCase()}</div>
+      </div>
+      <div class="user-unranked">Unranked</div>
+    </div>` : ''}
+
+    <div class="section-hdr">${leagueName || region.toUpperCase() + ' Challenger'} — Top 10</div>
+    ${top10.length > 0 ? `<div class="lb-wrap">
+      <table class="lb-table">
+        <thead><tr><th>#</th><th>Oyuncu</th><th>LP</th><th>Maç</th><th>WR</th></tr></thead>
+        <tbody>
+          ${top10.map((e, i) => {
+            const wr = Math.round((e.wins / (e.wins + e.losses)) * 100);
+            const rankCls = i === 0 ? 'rank-gold' : i === 1 ? 'rank-silver' : i === 2 ? 'rank-bronze' : '';
+            const wrCls = wr >= 55 ? 'wr-high' : wr < 45 ? 'wr-low' : 'wr-mid';
+            return `<tr>
+              <td><span class="rank-num ${rankCls}">${i + 1}</span></td>
+              <td class="player-cell">${e.summonerName || '—'}</td>
+              <td class="lp-cell">${e.leaguePoints.toLocaleString('tr-TR')} LP</td>
+              <td class="wl-cell">${e.wins}W ${e.losses}L</td>
+              <td class="wr-cell" style="color:${wrColor(wr)}">${wr}%</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : `<div class="empty-state">Liderlik tablosu yüklenemedi.</div>`}
+  </div>
+</body>
+</html>`);
 });
 
 app.listen(PORT, () => {
