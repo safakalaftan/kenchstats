@@ -1,6 +1,9 @@
 const express = require('express');
 const axios = require('axios');
+const NodeCache = require('node-cache');
 require('dotenv').config();
+
+const cache = new NodeCache({ stdTTL: 300 });
 
 const app = express();
 const PORT = 3000;
@@ -15,31 +18,69 @@ const BOLGE_MAP = {
 
 const DDRAGON = 'https://ddragon.leagueoflegends.com/cdn/14.24.1';
 
+const CHAMPION_NAME_MAP = {
+  'TahmKench': 'Tahm Kench',
+  'MissFortune': 'Miss Fortune',
+  'RenataGlasc': 'Renata Glasc',
+  'AurelionSol': 'Aurelion Sol',
+  'DrMundo': 'Dr. Mundo',
+  'JarvanIV': 'Jarvan IV',
+  'LeeSin': 'Lee Sin',
+  'MasterYi': 'Master Yi',
+  'MonkeyKing': 'Wukong',
+  'Nunu': 'Nunu & Willump',
+  'TwistedFate': 'Twisted Fate',
+  'XinZhao': 'Xin Zhao',
+  'KogMaw': "Kog'Maw",
+  'Kaisa': "Kai'Sa",
+  'Khazix': "Kha'Zix",
+  'Chogath': "Cho'Gath",
+  'Velkoz': "Vel'Koz",
+  'Reksai': "Rek'Sai",
+  'BelVeth': "Bel'Veth",
+  'Belveth': "Bel'Veth",
+  'KSante': "K'Sante",
+  'Ksante': "K'Sante",
+  'NunuWillump': 'Nunu & Willump',
+  'RekSai': "Rek'Sai",
+  'VelKoz': "Vel'Koz",
+  'ChoGath': "Cho'Gath",
+  'KhaZix': "Kha'Zix",
+  'KaiSa': "Kai'Sa",
+};
+
+function formatChampionName(id) {
+  if (!id) return id;
+  return CHAMPION_NAME_MAP[id] || id;
+}
+
 const KUYRUK_ADI = {
   420: 'Ranked Solo/Duo', 440: 'Ranked Flex', 400: 'Normal Draft',
   430: 'Normal Blind', 450: 'ARAM', 700: 'Clash', 490: 'Quickplay',
   0: 'Custom'
 };
 
-let champIdMap = null;
 async function getChampIdMap() {
-  if (champIdMap) return champIdMap;
+  const cached = cache.get('champIdMap');
+  if (cached) return cached;
   const r = await axios.get(`${DDRAGON}/data/tr_TR/champion.json`);
-  champIdMap = {};
+  const champIdMap = {};
   for (const champ of Object.values(r.data.data)) {
     champIdMap[parseInt(champ.key)] = champ.id;
   }
+  cache.set('champIdMap', champIdMap, 3600);
   return champIdMap;
 }
 
-let spellIdMap = null;
 async function getSpellIdMap() {
-  if (spellIdMap) return spellIdMap;
+  const cached = cache.get('spellIdMap');
+  if (cached) return cached;
   const r = await axios.get(`${DDRAGON}/data/tr_TR/summoner.json`);
-  spellIdMap = {};
+  const spellIdMap = {};
   for (const spell of Object.values(r.data.data)) {
     spellIdMap[parseInt(spell.key)] = spell.id;
   }
+  cache.set('spellIdMap', spellIdMap, 3600);
   return spellIdMap;
 }
 
@@ -60,9 +101,9 @@ const NAV_CSS = `
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0b0e14; color: #c8d0e0; font-family: 'Inter', 'Segoe UI', sans-serif; min-height: 100vh; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(11,14,20,0.95); border-bottom: 1px solid #1c2530; backdrop-filter: blur(12px); padding: 0 40px; height: 58px; display: flex; align-items: center; gap: 20px; }
-    .logo { font-size: 17px; font-weight: 700; letter-spacing: 2px; color: #e2e8f0; text-decoration: none; display: flex; align-items: center; gap: 10px; font-family: 'Cinzel', serif; }
-    .logo img { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; }
-    .logo span { color: #4f8ef7; }
+    .logo { font-size: 17px; font-weight: 700; letter-spacing: 2px; color: #e2e8f0; text-decoration: none; display: flex; align-items: center; gap: 0; font-family: 'Cinzel', serif; }
+    .logo img { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; margin-right: 10px; }
+    .logo span { color: #4f8ef7; letter-spacing: 0; margin-left: -2px; }
     .nav-links { display: flex; gap: 24px; margin-left: 16px; }
     .nav-links a { font-size: 13px; font-weight: 500; color: #4a5568; text-decoration: none; transition: color .15s; }
     .nav-links a:hover { color: #c8d0e0; }
@@ -76,13 +117,13 @@ app.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KenchStats — LoL İstatistikleri</title>
+  <title>LolStats — LoL İstatistikleri</title>
   <style>
     ${NAV_CSS}
     body { background: #070C14; }
     #particles-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     .nav { z-index: 100; background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
-    .logo span { color: #C89B3C; }
+    .logo span { color: #C89B3C; letter-spacing: 0; margin-left: -2px; }
 
     .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 20px 70px; position: relative; z-index: 1; }
     .hero-glow { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); width: 780px; height: 420px; background: radial-gradient(ellipse, rgba(200,155,60,0.055) 0%, rgba(79,195,247,0.025) 55%, transparent 72%); pointer-events: none; }
@@ -130,7 +171,7 @@ app.get('/', (req, res) => {
 <body>
   <canvas id="particles-canvas"></canvas>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <div class="nav-links">
       <a href="/search">Profil Ara</a><a href="/champions">Şampiyonlar</a><a href="/leaderboard">Sıralama</a>
     </div>
@@ -175,7 +216,7 @@ app.get('/', (req, res) => {
       </div>
     </div>
   </div>
-  <div class="footer">KenchStats, Riot Games ile bağlantılı değildir.</div>
+  <div class="footer">LolStats, Riot Games ile bağlantılı değildir.</div>
   <script>
     // Particle system
     (function () {
@@ -233,7 +274,7 @@ app.get('/', (req, res) => {
     });
 
     // Recently searched
-    const RECENT_KEY = 'kenchstats_recent_v1';
+    const RECENT_KEY = 'lolstats_recent_v1';
     function getRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; } }
     function saveRecent(bolge, isim, tag) {
       const list = getRecent().filter(r => !(r.b === bolge && r.i.toLowerCase() === isim.toLowerCase() && r.t.toLowerCase() === tag.toLowerCase()));
@@ -273,6 +314,12 @@ app.get('/', (req, res) => {
 
 app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
   const { bolge, isim, tag } = req.params;
+  const cacheKey = `${bolge}-${isim}-${tag}`;
+  const cachedHtml = cache.get(cacheKey);
+  if (cachedHtml) {
+    return res.send(cachedHtml);
+  }
+
   const API_KEY = process.env.RIOT_API_KEY;
   const { sunucu, routing } = BOLGE_MAP[bolge.toLowerCase()] || BOLGE_MAP.tr;
 
@@ -399,12 +446,12 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
       return '#8b97ad';
     }
 
-    res.send(`
+    const html = `
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>${hesap.data.gameName} — KenchStats</title>
+  <title>${hesap.data.gameName} — LolStats</title>
   <style>
     ${NAV_CSS}
     .back { color: #4a5568; text-decoration: none; font-size: 13px; font-weight: 500; transition: color .15s; }
@@ -491,7 +538,7 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <a class="back" href="/">← Ana Sayfa</a>
     <div class="nav-right">
       <a class="canli-btn" href="/canli/${bolge}/${encodeURIComponent(hesap.data.gameName)}/${hesap.data.tagLine}"><div class="live-dot"></div> Canlı Oyun</a>
@@ -551,7 +598,7 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
       <div class="mac-glow"></div>
       <div class="badge">${m.kazandi ? 'KAZANDI' : 'KAYBETTİ'}</div>
       <img class="champ-icon" src="${DDRAGON}/img/champion/${m.champion}.png" alt="${m.champion}" onerror="this.style.display='none'"/>
-      <div class="champ-nm">${m.champion}</div>
+      <div class="champ-nm">${formatChampionName(m.champion)}</div>
       <div class="kda-wrap">
         <div class="kda-score">${m.kills} / <span style="color:#ff4655">${m.deaths}</span> / ${m.assists}</div>
         <div class="kda-ratio" style="color:${kdaClr}">KDA ${m.kda}</div>
@@ -571,7 +618,9 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
   </div>
 </body>
 </html>
-    `);
+    `;
+    cache.set(cacheKey, html);
+    res.send(html);
 
   } catch (error) {
     const detay = error.response ? `${error.response.status} - ${JSON.stringify(error.response.data)}` : error.message;
@@ -659,7 +708,7 @@ app.get('/canli/:bolge/:isim/:tag', async (req, res) => {
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Canlı Oyun — ${oyuncuAdi} — KenchStats</title>
+  <title>Canlı Oyun — ${oyuncuAdi} — LolStats</title>
   <style>
     ${NAV_CSS}
     .back { color: #4a5568; text-decoration: none; font-size: 13px; font-weight: 500; }
@@ -708,7 +757,7 @@ app.get('/canli/:bolge/:isim/:tag', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <a class="back" href="/">← Ana Sayfa</a>
     <div class="nav-right">
       <a class="profil-link" href="/oyuncu/${bolge}/${encodeURIComponent(oyuncuAdi)}/${oyuncuTag}">Profil</a>
@@ -845,7 +894,7 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
                 ? `<a class="p-name ${kendiMi ? 'p-name-kendi' : ''} p-name-link" href="/oyuncu/${bolge}/${encodeURIComponent(p.riotIdGameName)}/${encodeURIComponent(p.riotIdTagline)}">${kendiMi ? '★ ' : ''}${oyuncuIsim}</a>`
                 : `<div class="p-name ${kendiMi ? 'p-name-kendi' : ''}">${kendiMi ? '★ ' : ''}${oyuncuIsim}</div>`
               }
-              <div class="p-champ-sub">${p.championName}</div>
+              <div class="p-champ-sub">${formatChampionName(p.championName)}</div>
             </div>
           </div>
         </td>
@@ -930,7 +979,7 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maç Detayı — KenchStats</title>
+  <title>Maç Detayı — LolStats</title>
   <style>
     ${NAV_CSS}
     .back { color: #4a5568; text-decoration: none; font-size: 13px; font-weight: 500; transition: color .15s; }
@@ -1009,7 +1058,7 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <a class="back" href="javascript:history.back()">← Geri</a>
     <div class="nav-right">
       <a class="profil-link" href="${profilUrl}">Profil</a>
@@ -1031,7 +1080,7 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
         <img src="${DDRAGON}/img/champion/${benimOyuncu.championName}.png" alt="${benimOyuncu.championName}" onerror="this.style.display='none'"/>
         <div>
           <div class="mac-kda-big">${benimOyuncu.kills} / <span class="d">${benimOyuncu.deaths}</span> / ${benimOyuncu.assists}</div>
-          <div class="mac-kda-sub">${benimOyuncu.championName} · ${benimOyuncu.deaths === 0 ? 'Perfect KDA' : (((benimOyuncu.kills + benimOyuncu.assists) / benimOyuncu.deaths).toFixed(2) + ' KDA')}</div>
+          <div class="mac-kda-sub">${formatChampionName(benimOyuncu.championName)} · ${benimOyuncu.deaths === 0 ? 'Perfect KDA' : (((benimOyuncu.kills + benimOyuncu.assists) / benimOyuncu.deaths).toFixed(2) + ' KDA')}</div>
         </div>
       </div>` : ''}
     </div>
@@ -1057,19 +1106,33 @@ app.get('/mac/:bolge/:macId/:puuid', async (req, res) => {
 });
 
 // ── /search ───────────────────────────────────────────────────────────────────
-app.get('/search', (req, res) => {
+app.get('/search', async (req, res) => {
+  const FIXED_CHAMPS = ['Leona', 'MissFortune', 'TahmKench', 'Tristana', 'Senna'];
+  let slideshowChamps = [...FIXED_CHAMPS];
+  try {
+    const champList = await axios.get(`${DDRAGON}/data/tr_TR/champion.json`);
+    const all = Object.keys(champList.data.data).filter(c => !FIXED_CHAMPS.includes(c));
+    const shuffled = all.sort(() => Math.random() - 0.5).slice(0, 5);
+    slideshowChamps = [...FIXED_CHAMPS, ...shuffled].sort(() => Math.random() - 0.5);
+  } catch (_) { /* keep fixed 5 on error */ }
+
   res.send(`<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profil Ara — KenchStats</title>
+  <title>Profil Ara — LolStats</title>
   <style>
     ${NAV_CSS}
     body { background: #070C14; }
-    .logo span { color: #C89B3C; }
+    .logo span { color: #C89B3C; letter-spacing: 0; margin-left: -2px; }
     .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
-    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 20px 60px; }
+    .slideshow-bg { position: fixed; inset: 0; z-index: 1; overflow: hidden; background: #070C14; }
+    .slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out; display: flex; align-items: center; justify-content: center; background: #070C14; }
+    .slide.active { opacity: 1; }
+    .slide-img { max-width: 60%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; }
+    .slideshow-overlay { position: fixed; inset: 0; z-index: 2; background: rgba(0,0,0,0.6); pointer-events: none; }
+    .page-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 20px 60px; position: relative; z-index: 3; }
     .page-title { font-size: 42px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; text-align: center; }
     .page-sub { font-size: 14px; color: #3a4a5c; margin-bottom: 36px; text-align: center; }
     .search-container { width: 100%; max-width: 640px; margin-bottom: 24px; }
@@ -1093,8 +1156,12 @@ app.get('/search', (req, res) => {
   </style>
 </head>
 <body>
+  <div class="slideshow-bg" id="slideshowBg">
+    ${slideshowChamps.map(c => `<div class="slide"><img class="slide-img" src="https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${c}_0.jpg" alt="${c}"/></div>`).join('\n    ')}
+  </div>
+  <div class="slideshow-overlay"></div>
   <nav class="nav">
-    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <div class="nav-links">
       <a href="/search" style="color:#C89B3C">Profil Ara</a>
       <a href="/champions">Şampiyonlar</a>
@@ -1127,7 +1194,7 @@ app.get('/search', (req, res) => {
     document.getElementById('arama').addEventListener('input', function () {
       searchWrap.classList.toggle('glow', this.value.length > 0);
     });
-    const RECENT_KEY = 'kenchstats_recent_v1';
+    const RECENT_KEY = 'lolstats_recent_v1';
     function getRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; } }
     function saveRecent(bolge, isim, tag) {
       const list = getRecent().filter(r => !(r.b === bolge && r.i.toLowerCase() === isim.toLowerCase() && r.t.toLowerCase() === tag.toLowerCase()));
@@ -1157,6 +1224,17 @@ app.get('/search', (req, res) => {
       window.location.href = '/oyuncu/' + bolge + '/' + encodeURIComponent(isim) + '/' + tag;
     }
     document.getElementById('arama').addEventListener('keypress', function (e) { if (e.key === 'Enter') ara(); });
+    (function() {
+      const slides = document.querySelectorAll('#slideshowBg .slide');
+      if (!slides.length) return;
+      let current = 0;
+      slides[0].classList.add('active');
+      setInterval(function() {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+      }, 4000);
+    })();
   </script>
 </body>
 </html>`);
@@ -1172,11 +1250,11 @@ app.get('/champions', async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Şampiyonlar — KenchStats</title>
+  <title>Şampiyonlar — LolStats</title>
   <style>
     ${NAV_CSS}
     body { background: #070C14; }
-    .logo span { color: #C89B3C; }
+    .logo span { color: #C89B3C; letter-spacing: 0; margin-left: -2px; }
     .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
     .container { max-width: 1200px; margin: 0 auto; padding: 80px 24px 60px; }
     .page-title { font-size: 32px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
@@ -1198,7 +1276,7 @@ app.get('/champions', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <div class="nav-links">
       <a href="/search">Profil Ara</a>
       <a href="/champions" style="color:#C89B3C">Şampiyonlar</a>
@@ -1309,17 +1387,18 @@ app.get('/champions/:championName', async (req, res) => {
 
     const splashUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championName}_0.jpg`;
     const stripTags = s => s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const escapeAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     res.send(`<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${champ.name} — KenchStats</title>
+  <title>${champ.name} — LolStats</title>
   <style>
     ${NAV_CSS}
     body { background: #070C14; }
-    .logo span { color: #C89B3C; }
+    .logo span { color: #C89B3C; letter-spacing: 0; margin-left: -2px; }
     .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
     .splash-wrap { position: relative; height: 440px; overflow: hidden; margin-top: 58px; }
     .splash-img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
@@ -1330,8 +1409,17 @@ app.get('/champions/:championName', async (req, res) => {
     .container { max-width: 960px; margin: 0 auto; padding: 0 24px 60px; }
     .section-hdr { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; margin: 32px 0 14px; display: flex; align-items: center; gap: 16px; }
     .abilities-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .ability-card { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 14px 12px; text-align: center; transition: border-color .15s; }
+    .ability-card { background: #0e1624; border: 1px solid #182030; border-radius: 12px; padding: 14px 12px; text-align: center; transition: border-color .15s; cursor: pointer; }
     .ability-card:hover { border-color: rgba(200,155,60,0.35); }
+    .ability-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(7,12,20,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+    .ability-modal-overlay.open { display: flex; }
+    .ability-modal { background: #0e1624; border: 1px solid rgba(200,155,60,0.4); border-radius: 16px; padding: 32px 28px; max-width: 480px; width: 100%; position: relative; }
+    .ability-modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: #4a5568; font-size: 20px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 6px; transition: color .15s; }
+    .ability-modal-close:hover { color: #c8d0e0; }
+    .ability-modal-key { font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #C89B3C; text-transform: uppercase; margin-bottom: 16px; }
+    .ability-modal-icon { width: 64px; height: 64px; border-radius: 12px; border: 2px solid rgba(200,155,60,0.4); margin: 0 auto 16px; display: block; }
+    .ability-modal-name { font-size: 16px; font-weight: 700; color: #c8d0e0; margin-bottom: 12px; text-align: center; }
+    .ability-modal-desc { font-size: 13px; color: #8b97ad; line-height: 1.7; text-align: left; max-height: 280px; overflow-y: auto; }
     .ability-key { font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #C89B3C; text-transform: uppercase; margin-bottom: 8px; }
     .ability-img { width: 52px; height: 52px; border-radius: 10px; border: 2px solid #182030; margin: 0 auto 8px; display: block; }
     .ability-name { font-size: 11px; font-weight: 700; color: #c8d0e0; margin-bottom: 6px; }
@@ -1356,7 +1444,7 @@ app.get('/champions/:championName', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <div class="nav-links">
       <a href="/search">Profil Ara</a>
       <a href="/champions" style="color:#C89B3C">Şampiyonlar</a>
@@ -1377,13 +1465,13 @@ app.get('/champions/:championName', async (req, res) => {
   <div class="container">
     <div class="section-hdr">Yetenekler</div>
     <div class="abilities-grid">
-      <div class="ability-card">
+      <div class="ability-card" onclick="openAbilityModal(this)" data-key="Pasif" data-name="${escapeAttr(champ.passive.name)}" data-img="${DDRAGON}/img/passive/${champ.passive.image.full}" data-desc="${escapeAttr(stripTags(champ.passive.description))}">
         <div class="ability-key">Pasif</div>
         <img class="ability-img" src="${DDRAGON}/img/passive/${champ.passive.image.full}" alt="${champ.passive.name}" onerror="this.style.background='#131920'"/>
         <div class="ability-name">${champ.passive.name}</div>
         <div class="ability-desc">${stripTags(champ.passive.description)}</div>
       </div>
-      ${champ.spells.map((s, i) => `<div class="ability-card">
+      ${champ.spells.map((s, i) => `<div class="ability-card" onclick="openAbilityModal(this)" data-key="${SPELL_KEYS[i]}" data-name="${escapeAttr(s.name)}" data-img="${DDRAGON}/img/spell/${s.image.full}" data-desc="${escapeAttr(stripTags(s.description))}">
         <div class="ability-key">${SPELL_KEYS[i]}</div>
         <img class="ability-img" src="${DDRAGON}/img/spell/${s.image.full}" alt="${s.name}" onerror="this.style.background='#131920'"/>
         <div class="ability-name">${s.name}</div>
@@ -1412,6 +1500,34 @@ app.get('/champions/:championName', async (req, res) => {
         <div class="match-meta">${m.cs} CS<br/>${m.duration}</div>
       </div>`).join('')}
   </div>
+
+  <div class="ability-modal-overlay" id="abilityModal" onclick="closeAbilityModal(event)">
+    <div class="ability-modal">
+      <button class="ability-modal-close" onclick="document.getElementById('abilityModal').classList.remove('open')">✕</button>
+      <div class="ability-modal-key" id="modalKey"></div>
+      <img class="ability-modal-icon" id="modalIcon" src="" alt=""/>
+      <div class="ability-modal-name" id="modalName"></div>
+      <div class="ability-modal-desc" id="modalDesc"></div>
+    </div>
+  </div>
+  <script>
+    function openAbilityModal(card) {
+      document.getElementById('modalKey').textContent = card.dataset.key;
+      document.getElementById('modalName').textContent = card.dataset.name;
+      document.getElementById('modalDesc').textContent = card.dataset.desc;
+      document.getElementById('modalIcon').src = card.dataset.img;
+      document.getElementById('modalIcon').alt = card.dataset.name;
+      document.getElementById('abilityModal').classList.add('open');
+    }
+    function closeAbilityModal(e) {
+      if (e.target === document.getElementById('abilityModal')) {
+        document.getElementById('abilityModal').classList.remove('open');
+      }
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') document.getElementById('abilityModal').classList.remove('open');
+    });
+  </script>
 </body>
 </html>`);
   } catch (e) {
@@ -1480,11 +1596,11 @@ app.get('/leaderboard', async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sıralama — KenchStats</title>
+  <title>Sıralama — LolStats</title>
   <style>
     ${NAV_CSS}
     body { background: #070C14; }
-    .logo span { color: #C89B3C; }
+    .logo span { color: #C89B3C; letter-spacing: 0; margin-left: -2px; }
     .nav { background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
     .container { max-width: 900px; margin: 0 auto; padding: 80px 24px 60px; }
     .page-title { font-size: 32px; font-weight: 900; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
@@ -1529,7 +1645,7 @@ app.get('/leaderboard', async (req, res) => {
 </head>
 <body>
   <nav class="nav">
-    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">KENCHSTATS<span>.GG</span></a>
+    <a class="logo" href="/"><img src="${DDRAGON}/img/champion/TahmKench.png" alt="Tahm Kench">LOLSTATS<span>.LOL</span></a>
     <div class="nav-links">
       <a href="/search">Profil Ara</a>
       <a href="/champions">Şampiyonlar</a>
@@ -1602,5 +1718,5 @@ app.get('/leaderboard', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`KenchStats ${PORT} portunda çalışıyor!`);
+  console.log(`LolStats ${PORT} portunda çalışıyor!`);
 });
