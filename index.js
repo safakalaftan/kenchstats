@@ -56,11 +56,11 @@ const RANK_BG = {
 };
 
 const NAV_CSS = `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0b0e14; color: #c8d0e0; font-family: 'Inter', 'Segoe UI', sans-serif; min-height: 100vh; }
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(11,14,20,0.95); border-bottom: 1px solid #1c2530; backdrop-filter: blur(12px); padding: 0 40px; height: 58px; display: flex; align-items: center; gap: 20px; }
-    .logo { font-size: 17px; font-weight: 800; letter-spacing: 1.5px; color: #e2e8f0; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .logo { font-size: 17px; font-weight: 700; letter-spacing: 2px; color: #e2e8f0; text-decoration: none; display: flex; align-items: center; gap: 10px; font-family: 'Cinzel', serif; }
     .logo img { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; }
     .logo span { color: #4f8ef7; }
     .nav-links { display: flex; gap: 24px; margin-left: 16px; }
@@ -79,67 +79,192 @@ app.get('/', (req, res) => {
   <title>KenchStats — LoL İstatistikleri</title>
   <style>
     ${NAV_CSS}
-    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px 60px; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, rgba(79,142,247,0.07) 0%, transparent 70%); pointer-events: none; }
-    .hero-badge { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; color: #4f8ef7; text-transform: uppercase; margin-bottom: 20px; background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.2); padding: 5px 14px; border-radius: 20px; }
-    .hero-title { font-size: 56px; font-weight: 900; text-align: center; line-height: 1.1; margin-bottom: 18px; color: #e2e8f0; letter-spacing: -1.5px; }
-    .hero-title span { color: #4f8ef7; }
-    .hero-sub { font-size: 16px; color: #4a5568; text-align: center; margin-bottom: 52px; max-width: 440px; line-height: 1.7; font-weight: 400; }
-    .search-container { width: 100%; max-width: 580px; margin-bottom: 80px; }
-    .search-wrap { display: flex; border-radius: 12px; overflow: hidden; border: 1px solid #1c2530; background: #131920; transition: border-color .2s, box-shadow .2s; }
-    .search-wrap:focus-within { border-color: rgba(79,142,247,0.5); box-shadow: 0 0 0 3px rgba(79,142,247,0.08); }
-    .region-sel { background: #0f1520; border: none; border-right: 1px solid #1c2530; color: #8b97ad; font-size: 12px; font-weight: 700; padding: 0 16px; height: 52px; outline: none; cursor: pointer; font-family: inherit; letter-spacing: .5px; }
-    .region-sel option { background: #131920; }
-    .search-input { flex: 1; background: transparent; border: none; color: #e2e8f0; font-size: 14px; font-weight: 500; padding: 0 18px; height: 52px; outline: none; font-family: inherit; }
-    .search-input::placeholder { color: #2d3a4a; }
-    .search-btn { background: #4f8ef7; border: none; color: #fff; font-size: 12px; font-weight: 700; padding: 0 26px; height: 52px; cursor: pointer; font-family: inherit; letter-spacing: .5px; transition: background .15s; }
-    .search-btn:hover { background: #3d7de8; }
-    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 840px; width: 100%; }
-    .feature { background: #131920; border: 1px solid #1c2530; border-radius: 14px; padding: 24px; transition: border-color .2s, transform .2s; cursor: default; }
-    .feature:hover { border-color: rgba(79,142,247,0.3); transform: translateY(-3px); }
-    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(79,142,247,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; }
-    .feature-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 7px; }
-    .feature-desc { font-size: 12px; color: #4a5568; line-height: 1.65; }
-    .footer { text-align: center; padding: 28px; font-size: 11px; color: #1e2a3a; border-top: 1px solid #0f1520; }
+    body { background: #070C14; }
+    #particles-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .nav { z-index: 100; background: rgba(7,12,20,0.96); border-bottom: 1px solid #1a2230; }
+    .logo span { color: #C89B3C; }
+
+    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 20px 70px; position: relative; z-index: 1; }
+    .hero-glow { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); width: 780px; height: 420px; background: radial-gradient(ellipse, rgba(200,155,60,0.055) 0%, rgba(79,195,247,0.025) 55%, transparent 72%); pointer-events: none; }
+
+    .hero-badge { font-size: 10px; font-weight: 600; letter-spacing: 3px; color: #C89B3C; text-transform: uppercase; margin-bottom: 28px; background: rgba(200,155,60,0.07); border: 1px solid rgba(200,155,60,0.22); padding: 6px 20px; border-radius: 20px; }
+
+    .hero-title { font-size: 68px; font-weight: 900; text-align: center; line-height: 1.05; margin-bottom: 18px; font-family: 'Cinzel', serif; letter-spacing: 2px; background: linear-gradient(160deg, #ede0be 0%, #C89B3C 45%, #9a7228 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-title .accent { background: linear-gradient(160deg, #a8dff5 0%, #4FC3F7 50%, #1e9fd4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .hero-sub { font-size: 15px; color: #3a4a5c; text-align: center; margin-bottom: 48px; max-width: 460px; line-height: 1.85; }
+
+    .search-container { width: 100%; max-width: 640px; margin-bottom: 24px; }
+    .search-wrap { display: flex; border-radius: 14px; overflow: hidden; border: 1px solid #182030; background: #0b1522; transition: border-color .3s, box-shadow .3s; }
+    .search-wrap.glow { border-color: rgba(200,155,60,0.48); box-shadow: 0 0 0 3px rgba(200,155,60,0.07), 0 0 28px rgba(200,155,60,0.1); }
+    .region-sel { background: #080f1a; border: none; border-right: 1px solid #182030; color: #C89B3C; font-size: 12px; font-weight: 700; padding: 0 20px; height: 64px; outline: none; cursor: pointer; font-family: inherit; letter-spacing: 1px; min-width: 82px; }
+    .region-sel option { background: #0b1522; color: #c8d0e0; }
+    .search-input { flex: 1; background: transparent; border: none; color: #dde4ef; font-size: 16px; padding: 0 20px; height: 64px; outline: none; font-family: inherit; }
+    .search-input::placeholder { color: #1c2a3a; }
+    .search-btn { background: linear-gradient(135deg, #C89B3C 0%, #9a7228 100%); border: none; color: #070C14; font-size: 11px; font-weight: 800; padding: 0 34px; height: 64px; cursor: pointer; font-family: 'Cinzel', serif; letter-spacing: 2px; transition: opacity .15s, transform .1s; flex-shrink: 0; }
+    .search-btn:hover { opacity: .85; }
+    .search-btn:active { transform: scale(.97); }
+
+    .recent-section { width: 100%; max-width: 640px; margin-bottom: 64px; min-height: 38px; }
+    .recent-label { font-size: 10px; letter-spacing: 2.5px; color: #243040; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+    .recent-list { display: flex; gap: 8px; flex-wrap: wrap; }
+    .recent-chip { display: flex; align-items: center; gap: 8px; background: #0b1522; border: 1px solid #182030; border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: border-color .15s, background .15s; text-decoration: none; }
+    .recent-chip:hover { border-color: rgba(200,155,60,0.32); background: #0f1d2e; }
+    .recent-chip-region { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #C89B3C; background: rgba(200,155,60,0.09); padding: 2px 7px; border-radius: 4px; }
+    .recent-chip-name { font-size: 12px; font-weight: 600; color: #7a8899; }
+    .recent-chip-tag { color: #2a3a4a; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 920px; width: 100%; }
+    .feature { background: linear-gradient(160deg, #0e1828 0%, #090f1c 100%); border: 1px solid #192230; border-radius: 18px; padding: 34px 28px 28px; transition: transform .22s, box-shadow .22s, border-color .22s; cursor: default; position: relative; overflow: hidden; }
+    .feature::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent 0%, #C89B3C 50%, transparent 100%); opacity: .55; transition: opacity .22s; }
+    .feature:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 24px rgba(200,155,60,0.06); border-color: rgba(200,155,60,0.18); }
+    .feature:hover::before { opacity: 1; }
+    .feature-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(200,155,60,0.07); border: 1px solid rgba(200,155,60,0.14); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 22px; }
+    .feature-title { font-size: 15px; font-weight: 700; color: #d8c9a4; margin-bottom: 10px; font-family: 'Cinzel', serif; letter-spacing: .5px; }
+    .feature-desc { font-size: 13px; color: #2e3d50; line-height: 1.8; }
+    .feature-tag { display: inline-block; margin-top: 18px; font-size: 9px; font-weight: 700; letter-spacing: 1.8px; color: #C89B3C; opacity: .5; text-transform: uppercase; }
+
+    .footer { text-align: center; padding: 28px; font-size: 11px; color: #0f1c28; border-top: 1px solid #0a1018; position: relative; z-index: 1; }
   </style>
 </head>
 <body>
+  <canvas id="particles-canvas"></canvas>
   <nav class="nav">
-    <div class="logo"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCH<span>STATS</span></div>
+    <a class="logo" href="/"><img src="https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/TahmKench.png" alt="Tahm Kench">KENCH<span>STATS</span></a>
     <div class="nav-links">
       <a href="#">Profil Ara</a><a href="#">Şampiyonlar</a><a href="#">Sıralama</a><a href="#">Canlı Oyun</a>
     </div>
   </nav>
   <div class="hero">
+    <div class="hero-glow"></div>
     <div class="hero-badge">League of Legends Tracker</div>
-    <h1 class="hero-title">Oyununu<br><span>Analiz Et</span></h1>
+    <h1 class="hero-title">Oyununu<br><span class="accent">Analiz Et</span></h1>
     <p class="hero-sub">Maç geçmişin, rank bilgin ve şampiyon istatistiklerin tek bir yerde.</p>
     <div class="search-container">
-      <div class="search-wrap">
+      <div class="search-wrap" id="searchWrap">
         <select class="region-sel" id="bolge">
-          <option value="tr">TR</option><option value="euw">EUW</option>
-          <option value="na">NA</option><option value="kr">KR</option><option value="eune">EUNE</option>
+          <option value="tr">TR</option>
+          <option value="euw">EUW</option>
+          <option value="na">NA</option>
+          <option value="kr">KR</option>
+          <option value="eune">EUNE</option>
         </select>
-        <input class="search-input" id="arama" placeholder="Oyuncu adı #TR1" />
+        <input class="search-input" id="arama" placeholder="Oyuncu adı #TR1" autocomplete="off" />
         <button class="search-btn" onclick="ara()">ARA</button>
       </div>
     </div>
+    <div class="recent-section" id="recentSection"></div>
     <div class="features">
-      <div class="feature"><div class="feature-icon">⚔️</div><div class="feature-title">Maç Geçmişi</div><div class="feature-desc">Son maçlarını detaylı KDA, şampiyon ve süre bilgileriyle incele.</div></div>
-      <div class="feature"><div class="feature-icon">🏆</div><div class="feature-title">Rank Bilgisi</div><div class="feature-desc">Solo/Duo ve Flex sıralamalarını, LP kazanç/kayıplarını takip et.</div></div>
-      <div class="feature"><div class="feature-icon">🎯</div><div class="feature-title">Şampiyon Analizi</div><div class="feature-desc">En çok oynadığın şampiyonlarda kazanma oranını ve performansını gör.</div></div>
+      <div class="feature">
+        <div class="feature-icon">⚔️</div>
+        <div class="feature-title">Maç Geçmişi</div>
+        <div class="feature-desc">Son maçlarını detaylı KDA, şampiyon performansı, item build ve süre bilgileriyle incele.</div>
+        <div class="feature-tag">Son 20 Maç</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Rank Bilgisi</div>
+        <div class="feature-desc">Solo/Duo ve Flex sıralamalarını, LP kazanç/kayıplarını ve sezon istatistiklerini takip et.</div>
+        <div class="feature-tag">Solo · Flex</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Şampiyon Analizi</div>
+        <div class="feature-desc">En çok oynadığın şampiyonlarda kazanma oranını, ortalama KDA ve CS istatistiklerini gör.</div>
+        <div class="feature-tag">Top 5 Şampiyon</div>
+      </div>
     </div>
   </div>
   <div class="footer">KenchStats, Riot Games ile bağlantılı değildir.</div>
   <script>
+    // Particle system
+    (function () {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [];
+
+      function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+      function rand(a, b) { return Math.random() * (b - a) + a; }
+
+      function newParticle(randomY) {
+        return {
+          x: rand(0, W || window.innerWidth),
+          y: randomY ? rand(0, H || window.innerHeight) : (H || window.innerHeight) + rand(5, 20),
+          r: rand(0.8, 2.4),
+          vy: rand(0.25, 0.75),
+          vx: rand(-0.12, 0.12),
+          alpha: rand(0.1, 0.5),
+          fadeDir: Math.random() > 0.5 ? 1 : -1,
+          fadeSpeed: rand(0.002, 0.006)
+        };
+      }
+
+      function init() {
+        particles = [];
+        const n = Math.floor(W * H / 12000);
+        for (let i = 0; i < n; i++) particles.push(newParticle(true));
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(200,155,60,' + p.alpha.toFixed(3) + ')';
+          ctx.fill();
+          p.y -= p.vy;
+          p.x += p.vx;
+          p.alpha += p.fadeDir * p.fadeSpeed;
+          if (p.alpha > 0.52 || p.alpha < 0.07) p.fadeDir *= -1;
+          if (p.y < -8) particles[i] = newParticle(false);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', () => { resize(); init(); });
+      resize(); init(); frame();
+    })();
+
+    // Search glow on input
+    const searchWrap = document.getElementById('searchWrap');
+    document.getElementById('arama').addEventListener('input', function () {
+      searchWrap.classList.toggle('glow', this.value.length > 0);
+    });
+
+    // Recently searched
+    const RECENT_KEY = 'kenchstats_recent_v1';
+    function getRecent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; } }
+    function saveRecent(bolge, isim, tag) {
+      const list = getRecent().filter(r => !(r.b === bolge && r.i.toLowerCase() === isim.toLowerCase() && r.t.toLowerCase() === tag.toLowerCase()));
+      list.unshift({ b: bolge, i: isim, t: tag });
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 5)));
+    }
+    function renderRecent() {
+      const list = getRecent();
+      const sec = document.getElementById('recentSection');
+      if (!list.length) { sec.innerHTML = ''; return; }
+      sec.innerHTML = '<div class="recent-label">Son Aramalar</div><div class="recent-list">' +
+        list.map(r =>
+          '<a class="recent-chip" href="/oyuncu/' + r.b + '/' + encodeURIComponent(r.i) + '/' + r.t + '">' +
+          '<span class="recent-chip-region">' + r.b.toUpperCase() + '</span>' +
+          '<span class="recent-chip-name">' + r.i + '<span class="recent-chip-tag">#' + r.t + '</span></span>' +
+          '</a>'
+        ).join('') + '</div>';
+    }
+    renderRecent();
+
+    // Search
     function ara() {
       const girdi = document.getElementById('arama').value.trim();
       const bolge = document.getElementById('bolge').value;
       if (!girdi.includes('#')) { alert('Lütfen #TAG formatında gir. Örnek: Duloxetine#RO34'); return; }
-      const [isim, tag] = girdi.split('#');
+      const [isim, ...tagParts] = girdi.split('#');
+      const tag = tagParts.join('#');
+      saveRecent(bolge, isim, tag);
       window.location.href = '/oyuncu/' + bolge + '/' + encodeURIComponent(isim) + '/' + tag;
     }
-    document.getElementById('arama').addEventListener('keypress', (e) => { if (e.key === 'Enter') ara(); });
+    document.getElementById('arama').addEventListener('keypress', function (e) { if (e.key === 'Enter') ara(); });
   </script>
 </body>
 </html>
@@ -295,7 +420,7 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
     .profil::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(79,142,247,0.05) 0%, transparent 70%); pointer-events: none; }
     .avatar { width: 76px; height: 76px; border-radius: 50%; background: #1c2530; border: 2px solid #4f8ef744; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #4f8ef7; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .profil-name { font-size: 24px; font-weight: 800; color: #e2e8f0; letter-spacing: -.3px; }
+    .profil-name { font-size: 24px; font-weight: 700; color: #e2e8f0; letter-spacing: .5px; font-family: 'Cinzel', serif; }
     .profil-tag { font-size: 14px; color: #4a5568; margin-top: 3px; font-weight: 500; }
     .profil-bolge { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; background: rgba(79,142,247,0.1); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.2); padding: 3px 10px; border-radius: 20px; margin-top: 10px; display: inline-block; }
 
@@ -304,7 +429,7 @@ app.get('/oyuncu/:bolge/:isim/:tag', async (req, res) => {
     .rank-card { background: #131920; border: 1px solid #1c2530; border-radius: 14px; padding: 20px 22px; }
     .rank-card.rank-empty { opacity: .6; }
     .rank-tip { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 10px; }
-    .rank-tier { font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.3px; }
+    .rank-tier { font-size: 22px; font-weight: 700; margin-bottom: 4px; letter-spacing: 1px; font-family: 'Cinzel', serif; }
     .rank-div { font-size: 18px; font-weight: 600; opacity: .8; }
     .rank-lp { font-size: 13px; color: #8b97ad; margin-bottom: 12px; font-weight: 500; }
     .rank-lp span { font-size: 11px; color: #4a5568; }
